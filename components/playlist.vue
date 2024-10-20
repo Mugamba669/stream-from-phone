@@ -73,6 +73,7 @@
         </span>
       </li>
     </ul>
+    <audio ref="audioPlayer" src="" id="audio"></audio>
   </div>
 </template>
 
@@ -86,7 +87,7 @@ export default {
   components: { player },
   data() {
     return {
-      player: new Audio(),
+      player: document.getElementById("audio"),
       items: [],
       playlist: [],
       currentSong: null,
@@ -94,7 +95,7 @@ export default {
       songProgress: 0,
       volume: 0.17,
       search: "",
-      folderName: "04 April",
+      folderName: "/Music/04 April",
       serverAddress:
         localStorage.getItem("address") == null
           ? "192.168.7.221"
@@ -113,7 +114,7 @@ export default {
       return new Date(date).toLocaleDateString();
     },
     updateVolume(volume) {
-      this.player.volume = volume.target.value;
+      this.$refs.audioPlayer.volume = volume.target.value;
     },
     formatSize(size) {
       return (size / (1024 * 1024)).toFixed(2) + " MB";
@@ -134,23 +135,21 @@ export default {
         this.serverAddress +
         ":8080/download?file=" +
         this.currentSong.path;
-      NodeID3.Promise.read(url).then((result) => {
-        console.log(result);
-      });
-      this.player.src = url;
-      this.player.play();
+
+      this.$refs.audioPlayer.src = url;
+      this.$refs.audioPlayer.play();
       this.isPlaying = true;
       this.updateProgress();
     },
     pause() {
-      this.player.pause();
+      this.$refs.audioPlayer.pause();
       this.isPlaying = false;
     },
     togglePlayPause() {
       if (this.isPlaying) {
         this.pause();
       } else {
-        this.player.play();
+        this.$refs.audioPlayer.play();
         this.isPlaying = true;
       }
     },
@@ -166,8 +165,11 @@ export default {
       this.playSongFromPlaylist(previousIndex);
     },
     updateProgress() {
-      this.player.addEventListener("timeupdate", () => {
-        const progress = (this.player.currentTime / this.player.duration) * 100;
+      this.$refs.audioPlayer.addEventListener("timeupdate", () => {
+        const progress =
+          (this.$refs.audioPlayer.currentTime /
+            this.$refs.audioPlayer.duration) *
+          100;
         this.songProgress = progress || 0;
       });
     },
@@ -199,9 +201,9 @@ export default {
     navigator.mediaSession.setActionHandler("nexttrack", this.nextSong);
     navigator.mediaSession.setActionHandler("previoustrack", this.nextSong);
 
-    this.player.volume = this.volume;
+    this.$refs.audioPlayer.volume = this.volume;
     // if song ended start a new song
-    this.player.onended = () => {
+    this.$refs.audioPlayer.onended = () => {
       this.nextSong();
       const url =
         "http://" +
