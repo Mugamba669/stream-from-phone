@@ -96,10 +96,7 @@ export default {
       volume: 0.17,
       search: "",
       folderName: "/Music/04 April",
-      serverAddress:
-        localStorage.getItem("address") == null
-          ? "192.168.7.221"
-          : localStorage.getItem("address"),
+      serverAddress: "",
     };
   },
   created() {
@@ -107,7 +104,9 @@ export default {
   },
   methods: {
     fetchData() {
-      localStorage.setItem("address", this.serverAddress);
+      if (process.client) {
+        localStorage.setItem("address", this.serverAddress);
+      }
       this.fetchSongs();
     },
     formatDate(date) {
@@ -197,6 +196,12 @@ export default {
     },
   },
   mounted() {
+    if (process.client) {
+      this.serverAddress =
+        localStorage.getItem("address") == null
+          ? "192.168.7.221"
+          : localStorage.getItem("address");
+    }
     this.fetchSongs();
     navigator.mediaSession.setActionHandler("nexttrack", this.nextSong);
     navigator.mediaSession.setActionHandler("previoustrack", this.nextSong);
