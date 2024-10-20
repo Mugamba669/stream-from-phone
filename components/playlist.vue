@@ -87,7 +87,7 @@ export default {
   components: { player },
   data() {
     return {
-      player: document.getElementById("audio"),
+      // player: document.getElementById("audio"),
       items: [],
       playlist: [],
       currentSong: null,
