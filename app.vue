@@ -1,6 +1,8 @@
 <template>
   <div class="min-h-screen">
-    <Playlist />
+    <ClientOnly>
+      <Playlist />
+    </ClientOnly>
   </div>
 </template>
 

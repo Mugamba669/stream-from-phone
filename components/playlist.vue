@@ -78,7 +78,6 @@
 </template>
 
 <script>
-import NodeID3 from "node-id3";
 import player from "./player/player.vue";
 
 // import getLocalIP from "~/test";
