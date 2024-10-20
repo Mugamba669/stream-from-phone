@@ -1,0 +1,26 @@
+{
+  "name": "nuxt-music-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "HOST=0.0.0.0 nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "Buffer": "^0.0.0",
+    "jdataview": "^2.5.0",
+    "music-metadata-browser": "^2.5.10",
+    "node-id3": "^0.2.6",
+    "nuxt": "^3.13.0",
+    "vue3-audio-player": "^1.0.7"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.11.4",
+    "@types/node": "^20.0.0",
+    "jsmediatags": "^3.9.7"
+  }
+}

@@ -1,0 +1,20 @@
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import nodePolyfills from 'rollup-plugin-polyfill-node'
+
+export default defineConfig({
+    plugins: [
+        vue(),
+        nodePolyfills({
+            include: ['buffer', 'stream']
+        })
+    ],
+    define: {
+        'process.env': {}
+    },
+    resolve: {
+        alias: {
+            buffer: 'rollup-plugin-polyfill-node/polyfills/buffer-es6'
+        }
+    }
+})
