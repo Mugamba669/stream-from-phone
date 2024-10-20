@@ -84,6 +84,7 @@ import player from "./player/player.vue";
 // import getLocalIP from "~/test";
 
 export default {
+  ssr: false,
   components: { player },
   data() {
     return {
