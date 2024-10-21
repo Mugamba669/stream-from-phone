@@ -1,65 +1,103 @@
-// import os from 'os';
+import * as mm from 'music-metadata-browser';
 
-// export default function getLocalIPAddress() {
-//     const networkInterfaces = os.networkInterfaces();
-//     let ipAddress = '';
+async function fetchSongs() {
+    try {
+        // Initial fetch of file listing
+        const response = await fetch(
+            "http://" + this.serverAddress + ":8080?path=" + this.pathURL
+        );
+        const data = await response.json();
+        this.items = data.items;
 
-//     // Loop through network interfaces
-//     for (const interfaceName in networkInterfaces) {
-//         const addresses = networkInterfaces[interfaceName];
-//         for (const address of addresses) {
-//             if (address.family === 'IPv4' && !address.internal) {
-//                 ipAddress = address.address;
-//                 break;
-//             }
-//         }
-//         if (ipAddress) {
-//             break;
-//         }
-//     }
+        // Filter MP3 files and directories
+        const mp3Files = data.items.filter(
+            item => item.type === "file" && item.extension === ".mp3"
+        );
+        this.folders = data.items.filter(
+            item => item.type === "directory"
+        );
 
-//     return ipAddress;
-// }
-
-// console.log('Local IP Address:', getLocalIPAddress());
-export default function getLocalIP() {
-    return new Promise((resolve, reject) => {
-        // Create a new RTCPeerConnection object (WebRTC)
-        const peerConnection = new RTCPeerConnection({
-            iceServers: []
-        });
-
-        // Create a data channel (we don’t need to use this)
-        peerConnection.createDataChannel('');
-
-        // Listen for ICE candidates (network interfaces)
-        peerConnection.onicecandidate = event => {
-            if (event && event.candidate && event.candidate.candidate) {
-                // Match the IP address from the ICE candidate string
-                const candidate = event.candidate.candidate;
-                const ipMatch = candidate.match(
-                    /([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/
+        // Fetch metadata for each MP3 file
+        this.playlist = await Promise.all(mp3Files.map(async (file) => {
+            try {
+                // Fetch the actual file content
+                const audioResponse = await fetch(
+                    `http://${this.serverAddress}:8080/file?path=${encodeURIComponent(file.path)}`
                 );
-                if (ipMatch) {
-                    resolve(ipMatch[1]);
-                    peerConnection.close(); // Close connection after retrieving IP
-                }
-            }
-        };
 
-        // Create an offer to trigger the ICE candidate gathering
-        peerConnection.createOffer()
-            .then(offer => peerConnection.setLocalDescription(offer))
-            .catch(error => reject(error));
+                if (!audioResponse.ok) {
+                    throw new Error(`HTTP error! status: ${audioResponse.status}`);
+                }
+
+                const blob = await audioResponse.blob();
+                const metadata = await mm.parseBlob(blob);
+
+                // Extract common metadata with fallbacks
+                const {
+                    title = file.name.replace('.mp3', ''),
+                    artist = 'Unknown Artist',
+                    album = 'Unknown Album',
+                    year = '',
+                    genre = [],
+                    picture = []
+                } = metadata.common;
+
+                // Create artwork URL if available
+                let artworkUrl = null;
+                if (picture && picture[0]) {
+                    const { data, format } = picture[0];
+                    const artworkBlob = new Blob([data], { type: format });
+                    artworkUrl = URL.createObjectURL(artworkBlob);
+                }
+
+                // Return enhanced file object with metadata
+                return {
+                    ...file,
+                    metadata: {
+                        title,
+                        artist: Array.isArray(artist) ? artist.join(', ') : artist,
+                        album: Array.isArray(album) ? album.join(', ') : album,
+                        year,
+                        genre: Array.isArray(genre) ? genre.join(', ') : genre,
+                        artworkUrl,
+                        duration: metadata.format.duration,
+                        bitrate: metadata.format.bitrate,
+                        sampleRate: metadata.format.sampleRate
+                    }
+                };
+            } catch (error) {
+                console.error(`Error fetching metadata for ${file.name}:`, error);
+                // Return file object with basic metadata if parsing fails
+                return {
+                    ...file,
+                    metadata: {
+                        title: file.name.replace('.mp3', ''),
+                        artist: 'Unknown Artist',
+                        album: 'Unknown Album',
+                        year: '',
+                        genre: '',
+                        artworkUrl: null,
+                        duration: 0,
+                        bitrate: 0,
+                        sampleRate: 0
+                    }
+                };
+            }
+        }));
+
+    } catch (error) {
+        console.error("Error fetching songs:", error);
+        this.items = [];
+        this.playlist = [];
+        this.folders = [];
+    }
+
+    // Clean up artwork URLs when component is destroyed
+    this.$once('hook:beforeDestroy', () => {
+        this.playlist.forEach(song => {
+            if (song.metadata?.artworkUrl) {
+                URL.revokeObjectURL(song.metadata.artworkUrl);
+            }
+        });
     });
 }
-getLocalIP().then(ipAddress => {
-    console.log('Local IP Address:', ipAddress);
-}).catch
-
-// fetch('https://api.ipify.org?format=json')
-//     .then(response => response.json())
-//     .then(data => {
-//         console.log('Public IP Address:', data.ip);
-//     })
-//     .catch(error => console.error('Error fetching public IP:', error));

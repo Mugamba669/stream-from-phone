@@ -94,12 +94,16 @@
       </div>
       
       <!-- Progress bar -->
-      <div class="h-2 bg-gray-300 rounded-lg overflow-hidden">
-        <div
-          class="h-full bg-blue-500 transition-all duration-500"
-          :style="{ width: songProgress + '%' }"
-        ></div>
+       <div class="flex flex-row  justify-around">
+        <div class="h-2 bg-gray-300 rounded-lg overflow-hidden">
+          <div
+            class="h-full bg-blue-500 transition-all duration-500"
+            :style="{ width: songProgress + '%' }"
+          ></div>
       </div>
+       
+       </div>
+      
     </div>
 </template>
 <script>
@@ -107,7 +111,7 @@ export default {
   name: "player",
   props: {
     currentSong: {
-      type:Object,
+      type: Object,
     },
     songProgress: {
       type: Number,
